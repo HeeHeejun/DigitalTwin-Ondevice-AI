@@ -27,8 +27,8 @@ class camera
 {
 public:
     cv::VideoCapture cap[4];
-    std::queue<std::vector<cv::Mat>> cap_queue;
-    std::vector<cv::Mat> pictures;
+    std::queue<std::vector<uint8_t>> cap_queue;
+    const int num_camera = 4;
 
 public:
     camera();
@@ -36,9 +36,11 @@ public:
 public:
     error_type do_capture();
 
-    static error_type capture_per_camera(cv::VideoCapture video, std::vector<cv::Mat>& pictures, camera_location type);
+    std::vector<uint8_t>& pop_cap();
 
-    static error_type test_view(std::vector<cv::Mat>& pictures, camera_location type);
+    error_type camera::capture_per_camera(cv::VideoCapture& video, std::vector<uint8_t>& pictures, const camera_location& type);
+
+    error_type camera::test_view(const cv::Mat& pictures, const camera_location type);
 };
 
 #endif

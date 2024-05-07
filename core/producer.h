@@ -4,6 +4,7 @@
 #include "error.h"
 #include "camera.h"
 #include "ridar.h"
+#include "object_detection.h"
 
 test producer_test_level = TEST;
 

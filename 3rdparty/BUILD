@@ -4,7 +4,7 @@ cc_library(
     includes = ["/usr/local/include/opencv4"],
     linkopts = [
         "-L/usr/local/lib", "-lopencv_core", "-lopencv_imgproc", "-lopencv_highgui",
-        "-lopencv_imgcodecs",  # 필요한 경우 추가 OpenCV 모듈
+        "-lopencv_imgcodecs", 
     ],
     visibility = ["//visibility:public"],
 )
