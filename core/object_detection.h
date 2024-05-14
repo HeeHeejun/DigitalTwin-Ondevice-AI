@@ -4,16 +4,28 @@
 #include <fstream>
 
 #include "coral/detection/adapter.h"
+#include "coral/examples/file_utils"
 #include "coral/tflite_utils.h"
 #include "tensorflow/lite/interpreter.h"
+#include "error.h"
 
+test edgeTPU_test_level = TEST;
 
-//ymin,xmin,ymax,xmax
 struct Box
 {
     float ymin, xmin, ymax, xmax;
     Box(float _ymin, float _xmin, float _ymax, float _xmax) : ymin(_ymin), xmin(_xmin), ymax(_ymax), xmax(_xmax){}
 };
+
+std::string ToString(const Box& box) 
+{
+    return absl::Substitute("BBox(ymin=$0,xmin=$1,ymax=$2,xmax=$3)", box.ymin, box.xmin, box.ymax, box.xmax);
+}
+
+std::ostream& operator<<(std::ostream& stream, const Box& box) 
+{
+    return stream << ToString(box);
+}
 struct Object 
 {
     int id;
@@ -22,6 +34,16 @@ struct Object
     float distance;
     Object(int _id, std::string _label, Box _box) : id(_id), label(_label), box(_box) {}
 };
+
+std::string ToString(const Object& obj) 
+{
+    return absl::Substitute("Object(id=$0,score=$1,bbox=$2)", obj.id, obj.label, obj.score, ToString(obj.box));
+}
+
+std::ostream& operator<<(std::ostream& stream, const Object& box) 
+{
+    return stream << ToString(box);
+}
 
 class edgeTPU_USB
 {

@@ -6,10 +6,7 @@
 #include <vector>
 #include <queue>
 #include <thread>
-#include <filesystem>
 #include "error.h"
-
-namespace fs = std::filesystem;
 
 enum camera_location
 {
@@ -27,7 +24,7 @@ class camera
 {
 public:
     cv::VideoCapture cap[4];
-    std::queue<std::vector<uint8_t>> cap_queue;
+    std::queue<std::vector<std::vector<uint8_t>>> cap_queue;
     const int num_camera = 4;
 
 public:
@@ -36,11 +33,11 @@ public:
 public:
     error_type do_capture();
 
-    std::vector<uint8_t>& pop_cap();
+    std::vector<std::vector<uint8_t>> pop_cap();
 
-    error_type camera::capture_per_camera(cv::VideoCapture& video, std::vector<uint8_t>& pictures, const camera_location& type);
+    error_type capture_per_camera(cv::VideoCapture& video, std::vector<uint8_t>& pictures, const camera_location type);
 
-    error_type camera::test_view(const cv::Mat& pictures, const camera_location type);
+    error_type test_view(const cv::Mat& pictures, const camera_location type);
 };
 
 #endif

@@ -26,9 +26,10 @@ camera::~camera()
 error_type camera::do_capture()
 {
     std::vector<std::thread> camera_thread;
-    std::vector<uint8_t> pictures = std::vector<uint8_t>(num_camera);
+    std::vector<std::vector<uint8_t>> pictures = std::vector<std::vector<uint8_t>>(num_camera);
     for(int i = 0; i < num_camera; i++)
-        camera_thread.emplace_back(&camera::capture_per_camera,std::ref(cap[i]), std::ref(pictures), static_cast<camera_location>(i));
+        //camera_thread.emplace_back(&camera::capture_per_camera,std::ref(cap[i]), std::ref(pictures), static_cast<camera_location>(i));
+        camera_thread.emplace_back(std::bind(&camera::capture_per_camera, this, std::ref(cap[i]), std::ref(pictures[i]), static_cast<camera_location>(i)));
     
     for(auto& thread : camera_thread)
         thread.join();
@@ -41,14 +42,14 @@ error_type camera::do_capture()
     return DONE;
 }
 
-std::vector<uint8_t>& camera::pop_cap()
+std::vector<std::vector<uint8_t>> camera::pop_cap()
 {
     auto tmp = cap_queue.front();
     cap_queue.pop();
     return tmp;
 }
 
-error_type camera::capture_per_camera(cv::VideoCapture& video, std::vector<uint8_t>& pictures, const camera_location& type)
+error_type camera::capture_per_camera(cv::VideoCapture& video, std::vector<uint8_t>& pictures, const camera_location type)
 {
     cv::Mat temp;
     video >> temp;
@@ -63,11 +64,7 @@ error_type camera::capture_per_camera(cv::VideoCapture& video, std::vector<uint8
     }
 
     if (camera_test_level)
-    {
-        fs::create_directories("output");
         test_view(std::ref(temp), type);
-    }
-
     return DONE;
 }
 
@@ -79,4 +76,3 @@ error_type camera::test_view(const cv::Mat& pictures, const camera_location type
 
     return DONE;
 }
-

@@ -1,0 +1,13 @@
+{
+ "/home/rpi_Hee/Desktop/DigitalTwin/model/bus_detect": {
+  "box": [
+   48.0,
+   392.0,
+   226.0,
+   900.0
+  ],
+  "conf": 0.8288013935089111,
+  "cls": 0.0,
+  "cls_name": "person"
+ }
+}

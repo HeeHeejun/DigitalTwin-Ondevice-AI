@@ -5,7 +5,7 @@ edgeTPU_USB::edgeTPU_USB(const std::string& model_path, const std::string& label
     model = std::move(coral::LoadModelOrDie(model_path));
     edgetpu_context = coral::ContainsEdgeTpuCustomOp(*model) ? coral::GetEdgeTpuContextOrDie() : nullptr;
     interpreter = coral::MakeEdgeTpuInterpreterOrDie(*model, edgetpu_context.get());
-
+    label = coral::ReadLabelFile(labels);
     int num_pp_count = 0;
     for (int i = 0; i < interpreter->nodes_size(); ++i) 
     {
@@ -24,6 +24,10 @@ edgeTPU_USB::edgeTPU_USB(const std::string& model_path, const std::string& label
 
 void edgeTPU_USB::do_inference(std::vector<uint8_t>& input_img)
 {
+    if(edgeTPU_test_level)
+    {
+        CHECK_EQ(coral::)
+    }
     CHECK_EQ(coral::InvokeWithMemBuffer(interpreter.get(), input_img.data(), input_img.size()), absl::OkStatus());
 }
 
