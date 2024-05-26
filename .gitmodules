@@ -1,3 +1,6 @@
 [submodule "3rdparty/libcoral"]
 	path = 3rdparty/libcoral
 	url = https://github.com/google-coral/libcoral.git
+[submodule "3rdparty/pycoral"]
+	path = 3rdparty/pycoral
+	url = https://github.com/google-coral/pycoral.git
