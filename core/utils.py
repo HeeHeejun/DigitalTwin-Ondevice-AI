@@ -46,7 +46,7 @@ def resize_and_pad(image, desired_size):
     old_size = image.shape[:2] 
     ratio = float(desired_size/max(old_size))
     new_size = tuple([int(x*ratio) for x in old_size])
-    
+    print(new_size)
     # new_size should be in (width, height) format
     
     image = cv2.resize(image, (new_size[1], new_size[0]))

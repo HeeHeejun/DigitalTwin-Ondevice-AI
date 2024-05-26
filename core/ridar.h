@@ -28,8 +28,9 @@ public:
 
     ridar_data* get_data();
 
-    error_type scan_start();
-    error_type scan_data();
+    void scan_start();
+    void scan_data();
+    float get_distance_from_anlge(float anlge);
 };
 
 #endif

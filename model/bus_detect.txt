@@ -1,5 +1,5 @@
 {
- "/home/rpi_Hee/Desktop/DigitalTwin/model/bus_detect": {
+ "/home/rpihee/Desktop/DigitalTwin-Ondevice-AI/model/bus_detect": {
   "box": [
    48.0,
    392.0,

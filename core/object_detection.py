@@ -6,17 +6,27 @@ import json
 import yaml
 
 from nms import non_max_suppression
-from utils import plot_one_box, Colors, get_image_tensor
+from utils import plot_one_box, Colors, get_image_tensor, resize_and_pad
 from pycoral.adapters import common
 from pycoral.utils.edgetpu import make_interpreter
 
 class USB_accellerater:
     def __init__(self, model, labels, conf_thresh=0.25, iou_thresh=0.45):
-        self.interpreter = make_interpreter(model)
-        self.interpreter.allocate_tensors()
+        smodel_file = os.path.abspath(model)
+    
+        if not model.endswith('tflite'):
+            model += ".tflite"
+            
+        self.model_file = model
         self.conf_thresh = conf_thresh
         self.iou_thresh = iou_thresh
+        self.interpreter = None
+        self.colors = Colors()  
         
+        self.get_names(labels)
+        self.interpreter = make_interpreter(self.model_file)
+        self.interpreter.allocate_tensors()
+    
         self.input_details = self.interpreter.get_input_details()
         self.output_details = self.interpreter.get_output_details()
         
@@ -30,10 +40,8 @@ class USB_accellerater:
         
         if self.output_scale < 1e-9:
             self.output_scale = 1.0
-        
+            
         self.input_size = self.get_image_size()
-        self.get_names(labels)
-        self.colors = Colors()
         
     def get_names(self, path):
         with open(path, 'r') as f:
@@ -75,15 +83,20 @@ class USB_accellerater:
         else:    
           return result
     
-    def predict(self, images):
-        det = []
-        for image_data in images:
-            image_array = np.array(image_data, dtype=np.uint8).reshape(self.input_size, self.input_size, 3)
-            self.interpreter.set_tensor(self.input_details['index'], [image_array])
-            self.interpreter.invoke()
+    def predict(self, images, save_img=True, save_txt=True):
+        det = {}
+        for idx, image_data in images.items():
+            resized, pad = resize_and_pad(image_data, self.input_size[0])
+            resized = resized.astype(np.float32)
 
-            out_data = self.interpreter.get_tensor(self.output_details['index'])
-            det.append(out_data)
+            resized /= 255.0
+
+            pred = self.forward(resized)
+            
+            output_path = idx + "_detect.jpg"
+            tmp = self.process_predictions(pred[0], image_data, pad, output_path, save_img=save_img, save_txt=save_txt)
+            det[idx] = tmp
+         
         return det
     
     def predict_from_file(self,image_path, save_img=True, save_txt=True):
@@ -170,9 +183,9 @@ class USB_accellerater:
     
 def main():
     print('----start----')
-    input = '/home/rpi_Hee/Desktop/DigitalTwin/model/bus.jpg'
-    model = '/home/rpi_Hee/Desktop/DigitalTwin/model/yolov5s-int8-224_edgetpu.tflite'
-    labels = '/home/rpi_Hee/Desktop/DigitalTwin/model/coco.yaml'
+    input = '/home/rpihee/Desktop/DigitalTwin-Ondevice-AI/model/bus.jpg'
+    model = '/home/rpihee/Desktop/DigitalTwin-Ondevice-AI/model/yolov5s-int8-224_edgetpu.tflite'
+    labels = '/home/rpihee/Desktop/DigitalTwin-Ondevice-AI/model/coco.yaml'
     count = 5
     device = USB_accellerater(model, labels)
     

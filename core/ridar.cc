@@ -1,6 +1,6 @@
 #include "ridar.h"
-
-test ridar_test_level = TEST;
+#include <cmath>
+test ridar_test_level = NONE;
 
 ridar::ridar()
 {
@@ -8,7 +8,7 @@ ridar::ridar()
     channel = sl::createSerialPortChannel(device, baudrate);
 
     auto res = drv->connect(*channel);
-    if(SL_IS_OK(res) && ridar_test_level)
+    if(SL_IS_OK(res))
     {
         sl_lidar_response_device_info_t deviceInfo;
         res = drv->getDeviceInfo(deviceInfo);
@@ -25,22 +25,24 @@ ridar::ridar()
 
 ridar::~ridar()
 {
+    drv->stop();
+    drv->setMotorSpeed(0);
     delete drv;
     delete *channel;
 }
 
-error_type ridar::scan_start()
+void ridar::scan_start()
 { 
     auto ans = drv->startScan(1, 1); 
-    if(!ans) return RIDAR_ERROR;
+    if(!ans) return;
 
-    return DONE;
+    return;
 }
 
-error_type ridar::scan_data()
+void ridar::scan_data()
 {
     auto ans = drv->grabScanDataHq(nodes, node_count);
-    if (!SL_IS_OK(ans)) return RIDAR_ERROR;
+    if (!SL_IS_OK(ans)) return;
     drv->ascendScanData(nodes, node_count);
 
     if(ridar_test_level)
@@ -55,7 +57,25 @@ error_type ridar::scan_data()
         }
     }
 
-    return DONE;
+    return;
 }
+
+float ridar::get_distance_from_anlge(float anlge)
+{
+    for (int pos = 0; pos < (int)node_count; ++pos)
+    {
+        if(nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT != 0)
+        {   
+            std::cout << "angle : " << (int)anlge << " lidar : " << (int)((nodes[pos].angle_z_q14 * 90.f) / 16384.f) << "\n";
+            if(abs(anlge - (((nodes[pos].angle_z_q14 * 90.f) / 16384.f))) < 1.5 )
+            {
+                if(nodes[pos].dist_mm_q2 / 4.0f < 1000.0f)
+                    return nodes[pos].dist_mm_q2 / 4.0f;
+            }   
+        }
+    }
+    return -1.0;
+}
+
 
 ridar_data* ridar::get_data(){return nodes;}
