@@ -147,7 +147,7 @@ class USB_accellerater:
                 with open(output_txt, 'w') as f:
                    json.dump(output, f, indent=1)
             if save_img:
-                print(output_path)
+                #print(output_path)
                 cv2.imwrite(output_path, output_image)
             
         return det

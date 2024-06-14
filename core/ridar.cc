@@ -66,7 +66,7 @@ float ridar::get_distance_from_anlge(float anlge)
     {
         if(nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT != 0)
         {   
-            std::cout << "angle : " << (int)anlge << " lidar : " << (int)((nodes[pos].angle_z_q14 * 90.f) / 16384.f) << "\n";
+            //std::cout << "angle : " << (int)anlge << " lidar : " << (int)((nodes[pos].angle_z_q14 * 90.f) / 16384.f) << "\n";
             if(abs(anlge - (((nodes[pos].angle_z_q14 * 90.f) / 16384.f))) < 1.5 )
             {
                 if(nodes[pos].dist_mm_q2 / 4.0f < 1000.0f)
@@ -74,7 +74,7 @@ float ridar::get_distance_from_anlge(float anlge)
             }   
         }
     }
-    return -1.0;
+    return 100.0;
 }
 
 

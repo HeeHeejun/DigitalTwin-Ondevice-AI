@@ -36,7 +36,7 @@ def write_json(data):
         json_file.write(json_data)
 
 class Sensor:
-    def __init__(self, model_path, label_path, start_signal = True):
+    def __init__(self, model_path, label_path, start_signal = True, capture=True):
         self.camera = camera.Camera()
         self.ridar = sensor.ridar()
         self.ridar.scan_start()
@@ -45,8 +45,12 @@ class Sensor:
         self.camera_thread = threading.Thread(target=self.camera_start)
         self.ridar_thread = threading.Thread(target=self.ridar_start)
         self.pictures = []
-        self.start()
-        
+        self.iscapture = True
+        self.setting()
+        self.start_sensing = threading.Thread(target=self.start_thread)
+        self.start_sensing.start()
+        #self.end()
+    
     def camera_start(self):
         try:
             self.camera.start_capturing()
@@ -69,39 +73,52 @@ class Sensor:
             center_of_camera = 180 if idx == 'front' else 0
             for *xyxy, conf, cls in reversed(detected):
                 c = int(cls)
+                if self.tpu.names[c] == "person" :
+                    continue
                 data[idx][num_instance] = {}
                 data[idx][num_instance]['box'] = xyxy
                 data[idx][num_instance]['conf'] = conf
-                data[idx][num_instance]['cls_name'] = self.tpu.names[c]
+                if self.tpu.names[c] == "person":
+                    continue
+                elif self.tpu.names[c] == "car":
+                    data[idx][num_instance]['cls_name'] = self.tpu.names[c]
+                else :
+                    data[idx][num_instance]['cls_name'] = "car"
                 angle = calculate_horizontal_angle_from_bbox(xyxy, self.camera.width , self.camera.fov, center_of_camera)
                 data[idx][num_instance]['angle'] = angle
-                print(f'angle %f, num_istance %d' % (angle, num_instance))
+                #print(f'angle %f, num_istance %d' % (angle, num_instance))
                 data[idx][num_instance]['distance'] = self.ridar.get_distance_from_anlge(angle)
                 num_instance = num_instance + 1 
+                
+                break
         return data
     
     def start(self):
+        self.start_sensing.start()
+        
+    def setting(self):
         try:
             self.camera.start_capturing()
         except KeyboardInterrupt:
             self.camera.stop_capturing()
-            
         self.ridar_thread.start()
+        
+    def start_thread(self):
         while self.start_signal:
-            #distance = self.ridar_data = self.ridar.get_data()
             start_time = time.perf_counter() 
             self.pop_from_cam()
             if not self.pictures:
                 continue
-            det = self.tpu.predict(self.pictures.pop(0))
+            det = self.tpu.predict(self.pictures.pop(0), self.iscapture, self.iscapture)
             write_json(self.calculate_distance(det))
             end_time = time.perf_counter() 
             capture_duration = (end_time - start_time) * 1000 
             print(f"Time taken : {capture_duration:.2f} ms")
-            self.start_signal = False
         
+    def end(self):
         self.ridar_thread.join()
         self.camera.stop_capturing()
+        
     
     
 
@@ -109,7 +126,6 @@ class Sensor:
 def main():
     model = '/home/rpihee/Desktop/DigitalTwin-Ondevice-AI/model/yolov5s-int8-224_edgetpu.tflite'
     labels = '/home/rpihee/Desktop/DigitalTwin-Ondevice-AI/model/coco.yaml'
-    print(calculate_horizontal_angle_from_bbox([0.0,0.0,1220,1080],1920,120))
     Sensor(model, labels)
 
 if __name__ == '__main__':

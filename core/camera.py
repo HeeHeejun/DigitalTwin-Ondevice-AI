@@ -20,7 +20,7 @@ class Camera:
         self.is_running = True
 
         os.makedirs('output', exist_ok=True)
-        self.camera_test_level = True
+        self.camera_test_level = False
         self.frame_dict = {}
 
     def __del__(self):
